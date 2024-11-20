@@ -80,7 +80,7 @@ export default function UserManager() {
         className="flex gap-2 border p-1 rounded-md w-fit"
         onClick={handleFilterDates}
       >
-        Filtrar{' '}
+        Ordenar{' '}
         {filterDatesTo === 'todayToPast' ? '(Mais novos)' : '(Mais antigos)'}
       </button>
 
