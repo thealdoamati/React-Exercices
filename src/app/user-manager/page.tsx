@@ -1,7 +1,7 @@
 'use client'
-import { useState } from 'react'
+import { SetStateAction, useState } from 'react'
 
-const pendingUsers = [
+const users = [
   {
     id: 1,
     name: 'João Silva',
@@ -15,7 +15,7 @@ const pendingUsers = [
     name: 'Maria Santos',
     email: 'maria.santos@email.com',
     requestDate: '2024-11-18',
-    status: 'pending',
+    status: 'paid',
     company: 'Digital Systems',
   },
   {
@@ -23,7 +23,7 @@ const pendingUsers = [
     name: 'Pedro Oliveira',
     email: 'pedro.oliveira@email.com',
     requestDate: '2024-11-17',
-    status: 'pending',
+    status: 'paid',
     company: 'Cloud Services',
   },
   {
@@ -46,13 +46,13 @@ const pendingUsers = [
 
 export default function UserManager() {
   const [filterDatesTo, setFilterDatesTo] = useState('')
-  const [orderedPendingUsers, setOrderedPendingUsers] = useState(pendingUsers)
+  const [orderedUsers, setOrderedUsers] = useState(users)
 
   function handleFilterDates() {
     if (filterDatesTo === 'todayToPast') {
-      setOrderedPendingUsers(
-        // Eu coloco o ... pois assim eu uso a última forma do pendingUsers para fazer o sort
-        [...pendingUsers].sort(
+      setOrderedUsers(
+        // Eu coloco o ... pois assim eu uso a última forma do users para fazer o sort
+        [...users].sort(
           (a, b) =>
             new Date(a.requestDate).getTime() -
             new Date(b.requestDate).getTime(),
@@ -60,8 +60,8 @@ export default function UserManager() {
       )
       setFilterDatesTo('pastToToday')
     } else {
-      setOrderedPendingUsers(
-        [...pendingUsers].sort(
+      setOrderedUsers(
+        [...users].sort(
           (a, b) =>
             new Date(b.requestDate).getTime() -
             new Date(a.requestDate).getTime(),
@@ -71,18 +71,45 @@ export default function UserManager() {
     }
   }
 
-  console.log('filterDatesTo', filterDatesTo)
-  console.log('orderedPendingUsers', orderedPendingUsers)
+  function handleFilterStatus(event: {
+    target: { value: SetStateAction<string> }
+  }) {
+    const selectedValue = event.target.value
+    filterStatusOnTable(selectedValue)
+  }
+
+  function filterStatusOnTable(selectedValue: SetStateAction<string>) {
+    if (selectedValue === 'pending') {
+      setOrderedUsers([...users].filter((user) => user.status === 'paid'))
+    }
+    if (selectedValue === 'paid') {
+      setOrderedUsers([...users].filter((user) => user.status === 'pending'))
+    }
+  }
 
   return (
     <div className="flex flex-col p-4 gap-4">
-      <button
-        className="flex gap-2 border p-1 rounded-md w-fit"
-        onClick={handleFilterDates}
-      >
-        Ordenar{' '}
-        {filterDatesTo === 'todayToPast' ? '(Mais novos)' : '(Mais antigos)'}
-      </button>
+      <div className="flex gap-10">
+        <label className="flex items-center gap-2">
+          Filtrar:
+          <select
+            onChange={handleFilterStatus}
+            id="selectBox"
+            className="flex gap-2 border p-1 rounded-md h-full w-fit"
+          >
+            <option value=""></option>
+            <option value="pending">Pendente</option>
+            <option value="paid">Pago</option>
+          </select>
+        </label>
+        <button
+          className="flex gap-2 border p-1 rounded-md w-fit"
+          onClick={handleFilterDates}
+        >
+          Ordenar{' '}
+          {filterDatesTo === 'todayToPast' ? '(Mais novos)' : '(Mais antigos)'}
+        </button>
+      </div>
 
       <table>
         <thead>
@@ -94,7 +121,7 @@ export default function UserManager() {
           <th>Company</th>
         </thead>
         <tbody>
-          {orderedPendingUsers.map((user) => {
+          {orderedUsers.map((user) => {
             return (
               <tr className="border-b-1 border" key={user.id}>
                 <td>{user.id}</td>
