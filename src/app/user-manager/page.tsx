@@ -1,5 +1,14 @@
 'use client'
-import { SetStateAction, useState } from 'react'
+import { ChangeEvent, useState } from 'react'
+
+interface User {
+  id: number
+  name: string
+  email: string
+  requestDate: string
+  status: string
+  company: string
+}
 
 const users = [
   {
@@ -46,45 +55,70 @@ const users = [
 
 export default function UserManager() {
   const [filterDatesTo, setFilterDatesTo] = useState('')
-  const [orderedUsers, setOrderedUsers] = useState(users)
+  const [filterStatusTo, setFilterStatusTo] = useState('')
+  const [orderedUsers, setOrderedUsers] = useState<User[]>(users)
 
-  function handleFilterDates() {
+  function handleFilterDateState() {
     if (filterDatesTo === 'todayToPast') {
-      setOrderedUsers(
-        // Eu coloco o ... pois assim eu uso a última forma do users para fazer o sort
-        [...users].sort(
-          (a, b) =>
-            new Date(a.requestDate).getTime() -
-            new Date(b.requestDate).getTime(),
-        ),
-      )
       setFilterDatesTo('pastToToday')
     } else {
-      setOrderedUsers(
-        [...users].sort(
-          (a, b) =>
-            new Date(b.requestDate).getTime() -
-            new Date(a.requestDate).getTime(),
-        ),
-      )
       setFilterDatesTo('todayToPast')
     }
+    const currentStatus = filterStatusTo
+
+    // Evitando troca de status ao filtrar datas
+    setFilterStatusTo(currentStatus)
+
+    applyAllFilters()
   }
 
-  function handleFilterStatus(event: {
-    target: { value: SetStateAction<string> }
-  }) {
+  function handleFilterDates(usersWithFilter: User[]) {
+    if (filterDatesTo === 'todayToPast') {
+      usersWithFilter = [...usersWithFilter].sort(
+        (a, b) =>
+          new Date(a.requestDate).getTime() - new Date(b.requestDate).getTime(),
+      )
+    } else {
+      usersWithFilter = [...usersWithFilter].sort(
+        (a, b) =>
+          new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime(),
+      )
+    }
+    return usersWithFilter
+  }
+
+  function handleFilterStatus(event: ChangeEvent<HTMLSelectElement>) {
     const selectedValue = event.target.value
-    filterStatusOnTable(selectedValue)
+    setFilterStatusTo(selectedValue)
+
+    applyAllFilters(selectedValue)
   }
 
-  function filterStatusOnTable(selectedValue: SetStateAction<string>) {
-    if (selectedValue === 'pending') {
-      setOrderedUsers([...users].filter((user) => user.status === 'paid'))
+  function filterStatusOnTable(
+    usersWithFilter: User[],
+    status = filterStatusTo,
+  ) {
+    if (status === 'pending') {
+      usersWithFilter = [...usersWithFilter].filter(
+        (user) => user.status === 'pending', // <- Agora mostra pending quando seleciona pending
+      )
+    } else if (status === 'paid') {
+      usersWithFilter = [...usersWithFilter].filter(
+        (user) => user.status === 'paid', // <- Agora mostra paid quando seleciona paid
+      )
     }
-    if (selectedValue === 'paid') {
-      setOrderedUsers([...users].filter((user) => user.status === 'pending'))
+    return usersWithFilter
+  }
+
+  function applyAllFilters(statusValue?: string) {
+    let usersWithFilter = [...users] as User[]
+    if (filterStatusTo !== '') {
+      usersWithFilter = filterStatusOnTable(usersWithFilter, statusValue)
     }
+    if (filterDatesTo !== '') {
+      usersWithFilter = handleFilterDates(usersWithFilter)
+    }
+    setOrderedUsers(usersWithFilter)
   }
 
   return (
@@ -94,6 +128,7 @@ export default function UserManager() {
           Filtrar:
           <select
             onChange={handleFilterStatus}
+            value={filterStatusTo}
             id="selectBox"
             className="flex gap-2 border p-1 rounded-md h-full w-fit"
           >
@@ -104,7 +139,7 @@ export default function UserManager() {
         </label>
         <button
           className="flex gap-2 border p-1 rounded-md w-fit"
-          onClick={handleFilterDates}
+          onClick={handleFilterDateState}
         >
           Ordenar{' '}
           {filterDatesTo === 'todayToPast' ? '(Mais novos)' : '(Mais antigos)'}
@@ -135,6 +170,9 @@ export default function UserManager() {
           })}
         </tbody>
       </table>
+      <div>
+        <span>Clientes totais: {orderedUsers.length}</span>
+      </div>
     </div>
   )
 }
