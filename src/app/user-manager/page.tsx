@@ -1,7 +1,9 @@
 'use client'
+import UserBreakdownTable from '@/components/UserBreakdownTable'
+import UserChart from '@/components/UserChart'
 import { ChangeEvent, useState } from 'react'
 
-interface User {
+export interface User {
   id: number
   name: string
   email: string
@@ -145,31 +147,8 @@ export default function UserManager() {
           {filterDatesTo === 'todayToPast' ? '(Mais novos)' : '(Mais antigos)'}
         </button>
       </div>
-
-      <table>
-        <thead>
-          <th>id</th>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Request Date</th>
-          <th>Status</th>
-          <th>Company</th>
-        </thead>
-        <tbody>
-          {orderedUsers.map((user) => {
-            return (
-              <tr className="border-b-1 border" key={user.id}>
-                <td>{user.id}</td>
-                <td>{user.name}</td>
-                <td>{user.email}</td>
-                <td>{user.requestDate}</td>
-                <td>{user.status}</td>
-                <td>{user.company}</td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
+      <UserChart orderedUsers={orderedUsers} />
+      <UserBreakdownTable orderedUsers={orderedUsers} />
       <div>
         <span>Clientes totais: {orderedUsers.length}</span>
       </div>
