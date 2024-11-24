@@ -10,7 +10,11 @@ export default function UserChart({ orderedUsers }: { orderedUsers: User[] }) {
     company,
   }))
 
-  console.log('orderUsersSmaller', orderUsersSmaller)
+  // Preciso agora colocar a quantidade de clientes por data
+  const x = new Date().getTime()
+  const filtered = orderUsersSmaller.filter((user) => {
+    return user.requestDate.getTime() >= x
+  })
 
   return (
     <div>
